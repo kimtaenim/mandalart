@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>만다라트 (Mandal-art) 목표 설정</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999999;
+            margin-bottom: 25px;
+            font-size: 0.95em;
+        }
+
+        .title-input-container {
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .title-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 15px 20px;
+            font-size: 1.2em;
+            border: 3px solid #374151;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .title-input:focus {
+            border-color: #111827;
+            box-shadow: 0 0 0 4px rgba(31, 41, 55, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mandal-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
+            background: #e5e7eb;
+            padding: 6px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            min-height: 150px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cell textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-size: 1.1em;
+            padding: 20px 15px;
+            background: transparent;
+            color: #1f2937;
+            font-weight: 500;
+            resize: none;
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            overflow-y: auto;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cell textarea::placeholder {
+            color: #d1d5db;
+            font-weight: 400;
+        }
+
+        /* 전체 중심 셀 (5행5열 - 인덱스 40) - 짙은 청회색 */
+        .cell.center {
+            background: #2c5282;
+            border-color: #1a365d;
+        }
+
+        .cell.center textarea {
+            color: white;
+            font-weight: 700;
+        }
+
+        .cell.center textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* 서브 중앙 셀 (회색 8개) - 하늘색 */
+        .cell.sub-center {
+            background: #90cdf4;
+            border-color: #63b3ed;
+        }
+
+        .cell.sub-center textarea {
+            color: white;
+            font-weight: 600;
+        }
+
+        .cell.sub-center textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* 중앙 3x3 영역 (연한 하늘색 배경) */
+        .cell.center-area {
+            background: #e0f2fe;
+            border-color: #bae6fd;
+        }
+
+        .cell.center-area textarea {
+            color: #2c5282;
+            font-weight: 600;
+        }
+
+        .cell.center-area textarea::placeholder {
+            color: #7dd3fc;
+        }
+
+        /* 3x3 블록 경계 강조 - 짙은 회색 */
+        .cell:nth-child(3n) {
+            border-right-width: 3px;
+            border-right-color: #6b7280;
+        }
+
+        .cell:nth-child(n+19):nth-child(-n+27) {
+            border-bottom-width: 3px;
+            border-bottom-color: #6b7280;
+        }
+
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom-width: 3px;
+            border-bottom-color: #6b7280;
+        }
+
+        .cell:hover {
+            box-shadow: inset 0 0 0 2px #374151;
+            transform: scale(1.005);
+        }
+
+        /* 버튼 컨테이너 */
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: white;
+            background: #2c5282;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            background: #1a365d;
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 20px;
+            }
+
+            .cell {
+                min-height: 120px;
+            }
+            
+            .cell textarea {
+                font-size: 1em;
+                padding: 15px 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .mandal-grid {
+                gap: 4px;
+                padding: 4px;
+            }
+
+            .cell {
+                min-height: 100px;
+            }
+
+            .cell textarea {
+                font-size: 0.9em;
+                padding: 12px 10px;
+            }
+
+            .btn {
+                padding: 12px 25px;
+                font-size: 0.95em;
+            }
+        }
+
+        /* 로딩 애니메이션 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>만다라트 (Mandal-art)</h1>
+        <p class="subtitle">목표를 9x9 그리드에 작성하여 체계적으로 관리하세요</p>
+        
+        <div class="title-input-container">
+            <input type="text" class="title-input" id="mainTitle" placeholder="프로젝트 제목을 입력하세요">
+        </div>
+
+        <div class="mandal-grid" id="mandalGrid"></div>
+
+        <div class="button-container">
+            <button class="btn" onclick="resetMandal()">초기화</button>
+            <button class="btn" onclick="downloadAsMD()">MD 다운로드</button>
+            <button class="btn" onclick="downloadAsHTML()">HTML 다운로드</button>
+        </div>
+    </div>
+
+    <script>
+        // 만다라트 구조 정의
+        // 행과 열은 1부터 시작하지만, 인덱스는 0부터 시작
+        // 행 r, 열 c의 인덱스 = (r-1) * 9 + (c-1)
+        
+        // 서브 중앙 셀 위치 (밝은 파란색 8개)
+        const subCenters = [
+            10,  // 2행2열: (2-1)*9 + (2-1) = 10
+            37,  // 5행2열: (5-1)*9 + (2-1) = 37
+            64,  // 8행2열: (8-1)*9 + (2-1) = 64
+            13,  // 2행5열: (2-1)*9 + (5-1) = 13
+            67,  // 8행5열: (8-1)*9 + (5-1) = 67
+            16,  // 2행8열: (2-1)*9 + (8-1) = 16
+            43,  // 5행8열: (5-1)*9 + (8-1) = 43
+            70   // 8행8열: (8-1)*9 + (8-1) = 70
+        ];
+        
+        // 중앙 3x3 영역 (4-6행, 4-6열)
+        const centerArea = [
+            30,  // 4행4열: (4-1)*9 + (4-1) = 30
+            31,  // 4행5열: (4-1)*9 + (5-1) = 31
+            32,  // 4행6열: (4-1)*9 + (6-1) = 32
+            39,  // 5행4열: (5-1)*9 + (4-1) = 39
+            40,  // 5행5열: (5-1)*9 + (5-1) = 40 (전체 중심)
+            41,  // 5행6열: (5-1)*9 + (6-1) = 41
+            48,  // 6행4열: (6-1)*9 + (4-1) = 48
+            49,  // 6행5열: (6-1)*9 + (5-1) = 49
+            50   // 6행6열: (6-1)*9 + (6-1) = 50
+        ];
+        
+        // 서브 중앙 → 중앙 3x3 영역 매핑
+        const subCenterMapping = {
+            10: 30,  // 2행2열 → 4행4열
+            37: 39,  // 5행2열 → 5행4열
+            64: 48,  // 8행2열 → 6행4열
+            13: 31,  // 2행5열 → 4행5열
+            67: 49,  // 8행5열 → 6행5열
+            16: 32,  // 2행8열 → 4행6열
+            43: 41,  // 5행8열 → 5행6열
+            70: 50   // 8행8열 → 6행6열
+        };
+
+        // 9x9 그리드 생성
+        function createMandalGrid() {
+            const grid = document.getElementById('mandalGrid');
+            
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                
+                // 전체 중심 셀 (5행5열, 인덱스 40)
+                if (i === 40) {
+                    cell.classList.add('center');
+                }
+                // 서브 중앙 셀 (밝은 파란색 8개)
+                else if (subCenters.includes(i)) {
+                    cell.classList.add('sub-center');
+                }
+                // 중앙 3x3 영역 (중심 셀 제외)
+                else if (centerArea.includes(i)) {
+                    cell.classList.add('center-area');
+                }
+                
+                const textarea = document.createElement('textarea');
+                textarea.id = `cell-${i}`;
+                
+                if (i === 40) {
+                    textarea.placeholder = '중심 목표';
+                } else if (subCenters.includes(i)) {
+                    textarea.placeholder = '세부 목표';
+                } else {
+                    textarea.placeholder = '';
+                }
+                
+                // 서브 중앙 셀의 입력 이벤트 - 해당하는 중앙 3x3 셀에 연동
+                if (subCenters.includes(i)) {
+                    textarea.addEventListener('input', function() {
+                        const targetIndex = subCenterMapping[i];
+                        document.getElementById(`cell-${targetIndex}`).value = this.value;
+                    });
+                }
+                
+                // 중앙 3x3 영역 셀의 입력 이벤트 - 해당하는 서브 중앙 셀에 연동
+                if (centerArea.includes(i) && i !== 40) {
+                    textarea.addEventListener('input', function() {
+                        // 역매핑 찾기
+                        const sourceIndex = Object.keys(subCenterMapping).find(
+                            key => subCenterMapping[key] === i
+                        );
+                        if (sourceIndex) {
+                            document.getElementById(`cell-${sourceIndex}`).value = this.value;
+                        }
+                    });
+                }
+                
+                cell.appendChild(textarea);
+                grid.appendChild(cell);
+            }
+        }
+
+        // 초기화 함수
+        function resetMandal() {
+            if (confirm('모든 내용을 초기화하시겠습니까?')) {
+                document.getElementById('mainTitle').value = '';
+                for (let i = 0; i < 81; i++) {
+                    document.getElementById(`cell-${i}`).value = '';
+                }
+            }
+        }
+
+        // MD 파일로 다운로드 - 테이블 형식으로 수정
+        function downloadAsMD() {
+            const title = document.getElementById('mainTitle').value || '만다라트';
+            let content = `# ${title}\n\n`;
+            content += `생성일: ${new Date().toLocaleDateString('ko-KR')}\n\n`;
+            content += `---\n\n`;
+            
+            // 중심 목표
+            content += `## 중심 목표\n\n`;
+            content += `**${document.getElementById('cell-40').value || '(비어있음)'}**\n\n`;
+            
+            content += `## 만다라트 전체 테이블\n\n`;
+            
+            // 9x9 테이블 헤더
+            content += `| | | | | | | | | |\n`;
+            content += `|---|---|---|---|---|---|---|---|---|\n`;
+            
+            // 9x9 테이블 내용
+            for (let row = 0; row < 9; row++) {
+                content += `|`;
+                for (let col = 0; col < 9; col++) {
+                    const cellIndex = row * 9 + col;
+                    let value = document.getElementById(`cell-${cellIndex}`).value || '';
+                    
+                    // 줄바꿈을 공백으로 변경
+                    value = value.replace(/\n/g, ' ');
+                    
+                    // 특수 셀은 강조 표시
+                    if (cellIndex === 40) {
+                        value = `**${value}**`;
+                    } else if (subCenters.includes(cellIndex)) {
+                        value = `*${value}*`;
+                    }
+                    
+                    content += ` ${value} |`;
+                }
+                content += `\n`;
+            }
+            
+            downloadFile(content, `${title}.md`, 'text/markdown');
+        }
+
+        // HTML 파일로 다운로드
+        function downloadAsHTML() {
+            const title = document.getElementById('mainTitle').value || '만다라트';
+            
+            let html = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+            background: #ffffff;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+        .date {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 6px;
+            background: #e5e7eb;
+            padding: 6px;
+            border-radius: 12px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            min-height: 150px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 15px;
+            font-size: 1.05em;
+            text-align: center;
+            word-break: break-word;
+            color: #1f2937;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+        .center {
+            background: #2c5282;
+            color: white;
+            font-weight: 700;
+            border-color: #1a365d;
+        }
+        .sub-center {
+            background: #90cdf4;
+            color: white;
+            font-weight: 600;
+            border-color: #63b3ed;
+        }
+        .center-area {
+            background: #e0f2fe;
+            color: #2c5282;
+            font-weight: 600;
+            border-color: #bae6fd;
+        }
+        .cell:nth-child(3n) {
+            border-right-width: 3px;
+            border-right-color: #6b7280;
+        }
+        .cell:nth-child(n+19):nth-child(-n+27) {
+            border-bottom-width: 3px;
+            border-bottom-color: #6b7280;
+        }
+        .cell:nth-child(n+46):nth-child(-n+54) {
+            border-bottom-width: 3px;
+            border-bottom-color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>${title}</h1>
+        <p class="date">생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+        <div class="grid">`;
+            
+            for (let i = 0; i < 81; i++) {
+                const value = document.getElementById(`cell-${i}`).value || '';
+                let cellClass = 'cell';
+                
+                if (i === 40) {
+                    cellClass += ' center';
+                } else if (subCenters.includes(i)) {
+                    cellClass += ' sub-center';
+                } else if (centerArea.includes(i)) {
+                    cellClass += ' center-area';
+                }
+                
+                html += `            <div class="${cellClass}">${value.replace(/\n/g, '<br>')}</div>\n`;
+            }
+            
+            html += `        </div>
+    </div>
+</body>
+</html>`;
+            
+            downloadFile(html, `${title}.html`, 'text/html');
+        }
+
+        // 파일 다운로드 헬퍼 함수
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // 페이지 로드 시 그리드 생성
+        window.addEventListener('DOMContentLoaded', createMandalGrid);
+    </script>
+</body>
+</html>
