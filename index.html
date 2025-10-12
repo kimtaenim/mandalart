@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>만다라트 (Mandal-art) 목표 설정</title>
+    <!-- html2canvas 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -293,7 +295,12 @@
             <button class="btn" onclick="resetMandal()">초기화</button>
             <button class="btn" onclick="downloadAsMD()">MD 다운로드</button>
             <button class="btn" onclick="downloadAsHTML()">HTML 다운로드</button>
+            <button class="btn" onclick="uploadHTML()">HTML 업로드</button>
+            <button class="btn" onclick="captureAsPNG()">PNG 캡처</button>
         </div>
+        
+        <!-- 숨겨진 파일 입력 요소 -->
+        <input type="file" id="fileInput" accept=".html" style="display: none;" onchange="handleFileUpload(event)">
     </div>
 
     <script>
@@ -493,20 +500,22 @@
         }
         .cell {
             aspect-ratio: 1;
-            min-height: 150px;
+            min-height: 100px;
+            max-width: 120px;
             border: 2px solid #d1d5db;
             border-radius: 8px;
             background: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px 15px;
-            font-size: 1.05em;
+            padding: 15px 10px;
+            font-size: 0.95em;
             text-align: center;
             word-break: break-word;
             color: #1f2937;
             font-weight: 500;
-            line-height: 1.6;
+            line-height: 1.4;
+            margin: 0 auto;
         }
         .center {
             background: #2c5282;
@@ -584,6 +593,173 @@
             document.body.removeChild(link);
             
             URL.revokeObjectURL(url);
+        }
+
+        // HTML 업로드 기능
+        function uploadHTML() {
+            document.getElementById('fileInput').click();
+        }
+
+        // HTML 파일 업로드 처리
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                // HTML 파싱
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(content, 'text/html');
+                
+                // 만다라트 그리드 찾기
+                const gridCells = doc.querySelectorAll('.grid .cell, .mandal-grid .cell');
+                
+                // 81개 셀이 있는지 확인
+                if (gridCells.length !== 81) {
+                    alert('업로드한 파일이 만다라트 포맷에 맞지 않습니다. (81개의 셀이 필요합니다)');
+                    event.target.value = ''; // 파일 입력 초기화
+                    return;
+                }
+                
+                // 제목 가져오기
+                const titleElement = doc.querySelector('h1');
+                if (titleElement) {
+                    const titleText = titleElement.textContent.trim();
+                    document.getElementById('mainTitle').value = titleText;
+                }
+                
+                // 각 셀의 내용을 현재 만다라트에 복사
+                gridCells.forEach((cell, index) => {
+                    let cellText = cell.textContent.trim();
+                    // br 태그를 줄바꿈으로 변환
+                    cellText = cell.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+                    // HTML 태그 제거
+                    cellText = cellText.replace(/<[^>]*>/g, '');
+                    // HTML 엔티티 디코딩
+                    const textarea = document.createElement('textarea');
+                    textarea.innerHTML = cellText;
+                    cellText = textarea.value;
+                    
+                    document.getElementById(`cell-${index}`).value = cellText;
+                });
+                
+                alert('HTML 파일이 성공적으로 업로드되었습니다.');
+                event.target.value = ''; // 파일 입력 초기화
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // PNG로 캡처하기
+        function captureAsPNG() {
+            const title = document.getElementById('mainTitle').value || '만다라트';
+            
+            // 캡처용 임시 컨테이너 생성
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '0';
+            tempContainer.style.background = 'white';
+            tempContainer.style.padding = '50px';
+            tempContainer.style.width = '1600px';  // 너비 더 증가
+            tempContainer.style.boxSizing = 'border-box';
+            
+            // 제목과 날짜 추가
+            const headerHTML = `
+                <h1 style="text-align: center; color: #1f2937; margin-bottom: 10px; font-size: 2.5em; font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;">${title}</h1>
+                <p style="text-align: center; color: #6b7280; margin-bottom: 30px; font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;">생성일: ${new Date().toLocaleDateString('ko-KR')}</p>
+            `;
+            
+            // 그리드 복사
+            const gridClone = document.getElementById('mandalGrid').cloneNode(true);
+            // 그리드 스타일 조정
+            gridClone.style.width = '100%';
+            gridClone.style.maxWidth = '1500px';  // 그리드 최대 너비도 증가
+            gridClone.style.margin = '0 auto';
+            gridClone.style.overflow = 'visible';
+            
+            // 모든 셀의 overflow 설정
+            const cells = gridClone.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                cell.style.overflow = 'visible';
+            });
+            
+            tempContainer.innerHTML = headerHTML;
+            tempContainer.appendChild(gridClone);
+            document.body.appendChild(tempContainer);
+            
+            // textarea를 div로 변환 (캡처를 위해)
+            const textareas = tempContainer.querySelectorAll('textarea');
+            textareas.forEach(textarea => {
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px 15px;
+                    font-size: 1.1em;
+                    color: ${textarea.style.color || '#1f2937'};
+                    font-weight: ${textarea.style.fontWeight || '500'};
+                    text-align: center;
+                    word-break: break-word;
+                    line-height: 1.6;
+                    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+                    box-sizing: border-box;
+                `;
+                
+                // textarea의 부모 요소가 특정 클래스를 가지고 있으면 색상 적용
+                const parentCell = textarea.parentElement;
+                if (parentCell.classList.contains('center')) {
+                    div.style.color = 'white';
+                    div.style.fontWeight = '700';
+                } else if (parentCell.classList.contains('sub-center')) {
+                    div.style.color = 'white';
+                    div.style.fontWeight = '600';
+                } else if (parentCell.classList.contains('center-area')) {
+                    div.style.color = '#2c5282';
+                    div.style.fontWeight = '600';
+                }
+                
+                div.innerHTML = textarea.value.replace(/\n/g, '<br>');
+                textarea.parentNode.replaceChild(div, textarea);
+            });
+            
+            // 잠시 대기 (렌더링 완료를 위해)
+            setTimeout(() => {
+                // html2canvas를 사용하여 PNG로 변환
+                html2canvas(tempContainer, {
+                    scale: 2, // 고품질 이미지를 위해 스케일 증가
+                    useCORS: true,
+                    logging: false,
+                    width: 1600,  // 캡처 너비도 1600으로 증가
+                    height: tempContainer.scrollHeight,
+                    windowWidth: 1600,  // 윈도우 너비도 1600으로
+                    windowHeight: tempContainer.scrollHeight,
+                    x: 0,
+                    y: 0
+                }).then(canvas => {
+                    // 캔버스를 이미지로 변환하여 다운로드
+                    canvas.toBlob(blob => {
+                        const link = document.createElement('a');
+                        const url = URL.createObjectURL(blob);
+                        link.href = url;
+                        link.download = `${title}.png`;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                    });
+                    
+                    // 임시 컨테이너 제거
+                    document.body.removeChild(tempContainer);
+                }).catch(error => {
+                    console.error('캡처 실패:', error);
+                    alert('PNG 캡처에 실패했습니다.');
+                    document.body.removeChild(tempContainer);
+                });
+            }, 100); // 100ms 대기
         }
 
         // 페이지 로드 시 그리드 생성
